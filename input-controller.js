@@ -217,7 +217,7 @@
                 return;
             }
             const event = new CustomEvent(type, {
-                actionName: actionName
+                detail: actionName
             });
             this.#target.dispatchEvent(event);
         }

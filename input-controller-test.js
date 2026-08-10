@@ -12,20 +12,23 @@
     var focusedState = document.getElementById("focused-state");
     var lastEvent = document.getElementById("last-event");
 
-    var controller = new InputController({
-        left: {
-            keys: [65, 37]
+    var controller = new InputController(
+        {
+            left: {
+                keys: [65, 37]
+            },
+            right: {
+                keys: [68, 39]
+            },
+            up: {
+                keys: [87, 38]
+            },
+            down: {
+                keys: [83, 40]
+            }
         },
-        right: {
-            keys: [68, 39]
-        },
-        up: {
-            keys: [87, 38]
-        },
-        down: {
-            keys: [83, 40]
-        }
-    });
+        document
+    );
 
     var x = 0;
     var y = 0;
@@ -69,12 +72,12 @@
     });
 
     document.addEventListener(controller.ACTION_ACTIVATED, function (event) {
-        var actionName = event.actionName;
+        var actionName = event.detail;
         lastEvent.textContent = "Activated: " + actionName;
     });
 
     document.addEventListener(controller.ACTION_DEACTIVATED, function (event) {
-        var actionName = event.actionName;
+        var actionName = event.detail;
         lastEvent.textContent = "Deactivated: " + actionName;
     });
 
