@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ru">
+    <head>
+        <meta charset="UTF-8">
+        <title>InputController Test</title>
+
+        <style>
+            #playground {
+                position: relative;
+                width: 600px;
+                height: 300px;
+                border: 1px solid black;
+            }
+            #player {
+                position: absolute;
+                width: 50px;
+                height: 50px;
+                background-color: black;
+            }
+            #player.jump {
+                background-color: green;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Input Controller Test</h1>
+
+        <button id = "attach">Attach</button>
+        <button id = "detach">Detach</button>
+        <button id = "enable">Enable controller</button>
+        <button id = "disable">Disable controller</button>
+        <button id = "enable-left">Enable left</button>
+        <button id = "disable-left">Disable left</button>
+        <button id = "bind-jump">Bind jump (Space)</button>
+
+        <p>
+            Controller enabled:
+            <span id = "enabled-state">false</span>
+        </p>
+        <p>
+            Controller focused:
+            <span id = "focused-state">false</span>
+        </p>
+        <p>
+            Last event:
+            <span id = "last-event">none</span>
+        </p>
+
+        <div id = "playground">
+            <div id = "player"></div>
+        </div>
+
+        <script src = "input-controller.js"></script>
+        <script src= "input-controller-test.js"></script>
+    </body>
+</html>
