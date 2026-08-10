@@ -1,16 +1,21 @@
 (function() {
     class InputController {
 
+        #plugins;
+
         #actions;
         #target;
-        #pressedKeys;
+        //#pressedKeys;
 
-        #handleKeyDownBinded;
-        #handleKeyUpBinded;
+        #updateActionsBinded;
+        //#handleKeyDownBinded;
+        //#handleKeyUpBinded;
         #handleFocusBinded;
         #handleBlurBinded;
 
         constructor(actionsToBuild = {}, target = null) {
+            this.#plugins = [];
+
             this.enabled = false;
             this.focused = false;
             this.ACTION_ACTIVATED = "input-controller:action-activated";
@@ -18,15 +23,34 @@
             this.#actions = new Map();
             this.#target = null;
 
-            this.#pressedKeys = new Set();
-            this.#handleKeyDownBinded = this.#handleKeyDown.bind(this);
-            this.#handleKeyUpBinded = this.#handleKeyUp.bind(this);
+            //this.#pressedKeys = new Set();
+            this.#updateActionsBinded = this.#updateActions.bind(this);
+            //this.#handleKeyDownBinded = this.#handleKeyDown.bind(this);
+            //this.#handleKeyUpBinded = this.#handleKeyUp.bind(this);
             this.#handleFocusBinded = this.#handleFocus.bind(this);
             this.#handleBlurBinded = this.#handleBlur.bind(this);
 
             this.bindActions(actionsToBuild);
             if (target) {
                 this.attach(target);
+            }
+        }
+
+        addPlugin(plugin) {
+            if (!(plugin instanceof InputPlugin)) {
+                throw new Error("Plugin must extend InputPlugin class!");
+            }
+
+            if (this.#plugins.includes(plugin)) {
+                return;
+            }
+
+            plugin.setOnChange(this.#updateActionsBinded);
+
+            this.#plugins.push(plugin);
+
+            if (this.#target) {
+                plugin.attach(this.#target);
             }
         }
 
@@ -41,7 +65,7 @@
 
                 if (!this.#actions[actionName]) {
                     this.#actions[actionName] = {
-                        keys: [],
+                        //keys: [],
                         enabled: true,
                         active: false
                     };
@@ -52,13 +76,22 @@
                     action.enabled = newAction.enabled;
                 }
 
-                if (newAction.keys) {
-                    newAction.keys.forEach(keyCode => {
-                        if (action.keys.indexOf(keyCode) === -1) {
-                            action.keys.push(keyCode);
-                        }
-                    });
+                for (var settingName in newAction) {
+                    if (settingName === "enabled") {
+                        continue;
+                    }
+                    action[settingName] = newAction[settingName];
                 }
+
+                this.#updateActions();
+
+                // if (newAction.keys) {
+                //     newAction.keys.forEach(keyCode => {
+                //         if (action.keys.indexOf(keyCode) === -1) {
+                //             action.keys.push(keyCode);
+                //         }
+                //     });
+                // }
 
             }
         }
@@ -89,8 +122,11 @@
             }
             this.#target = target;
 
-            this.#target.addEventListener("keydown", this.#handleKeyDownBinded);
-            this.#target.addEventListener("keyup", this.#handleKeyUpBinded);
+            for (var plugin of this.#plugins) {
+                plugin.attach(this.#target);
+            }
+            //this.#target.addEventListener("keydown", this.#handleKeyDownBinded);
+            //this.#target.addEventListener("keyup", this.#handleKeyUpBinded);
             this.#target.addEventListener("focus", this.#handleFocusBinded);
             this.#target.addEventListener("blur", this.#handleBlurBinded);
 
@@ -104,14 +140,17 @@
                 return;
             }
 
-            this.#target.removeEventListener("keydown", this.#handleKeyDownBinded);
-            this.#target.removeEventListener("keyup", this.#handleKeyUpBinded);
+            for (var plugin of this.#plugins) {
+                plugin.detach(this.#target);
+            }
+            //this.#target.removeEventListener("keydown", this.#handleKeyDownBinded);
+            //this.#target.removeEventListener("keyup", this.#handleKeyUpBinded);
             this.#target.removeEventListener("focus", this.#handleFocusBinded);
             this.#target.removeEventListener("blur", this.#handleBlurBinded);
 
             this.#target = null;
             this.enabled = false;
-            this.#pressedKeys.clear();
+            //this.#pressedKeys.clear();
 
             this.#actions.forEach(action => {
                 action.active = false;
@@ -128,47 +167,50 @@
             return action.active;
         }
 
-        isKeyPressed(keyCode) {
-            return this.#pressedKeys.has(keyCode);
-        }
+        //isKeyPressed(keyCode) {
+            //return this.#pressedKeys.has(keyCode);
+        //}
 
 
 
-        #handleKeyDown(event) {
-            if (!this.focused) {
-                return;
-            }
+        // #handleKeyDown(event) {
+        //     if (!this.focused) {
+        //         return;
+        //     }
 
-            var keyCode = event.keyCode;
+        //     var keyCode = event.keyCode;
 
-            if (this.#pressedKeys.has(keyCode)) {
-                return;
-            }
+        //     if (this.#pressedKeys.has(keyCode)) {
+        //         return;
+        //     }
 
-            this.#pressedKeys.add(keyCode);
+        //     this.#pressedKeys.add(keyCode);
 
-            this.#updateActions();
-        }
+        //     this.#updateActions();
+        // }
 
-        #handleKeyUp(event) {
-            if (!this.focused) {
-                return;
-            }
+        // #handleKeyUp(event) {
+        //     if (!this.focused) {
+        //         return;
+        //     }
 
-            var keyCode = event.keyCode;
+        //     var keyCode = event.keyCode;
 
-            if (!this.#pressedKeys.has(keyCode)) {
-                return;
-            }
+        //     if (!this.#pressedKeys.has(keyCode)) {
+        //         return;
+        //     }
 
-            this.#pressedKeys.delete(keyCode);
-            this.#updateActions();
-        }
+        //     this.#pressedKeys.delete(keyCode);
+        //     this.#updateActions();
+        // }
 
         #handleFocus() {
             this.focused = true;
 
-            this.#pressedKeys.clear();
+            for (var plugin of this.#plugins) {
+                plugin.clearPressed();
+            }
+            //this.#pressedKeys.clear();
 
             this.#actions.forEach(action => {
                 action.active = false;
@@ -178,7 +220,10 @@
         #handleBlur() {
             this.focused = false;
 
-            this.#pressedKeys.clear();
+            for (var plugin of this.#plugins) {
+                plugin.clearPressed();
+            }
+            //this.#pressedKeys.clear();
 
             this.#actions.forEach(action => {
                 action.active = false;
@@ -192,12 +237,20 @@
                 var wasActive = action.active;
                 
                 var isActive = false;
-                for (const keyCode of action.keys) {
-                    if (this.#pressedKeys.has(keyCode)) {
+                var activePlugin = null;
+                for (var plugin of this.#plugins) {
+                    if (plugin.isActionActive(action)) {
                         isActive = true;
+                        activePlugin = plugin.PLUGIN_NAME;
                         break;
                     }
                 }
+                //for (const keyCode of action.keys) {
+                    //if (this.#pressedKeys.has(keyCode)) {
+                    //    isActive = true;
+                    //    break;
+                    //}
+                //}
                 action.active = isActive;
 
                 if (wasActive === isActive || !generateEvents || !this.enabled || !this.focused || !action.enabled) {
@@ -205,19 +258,19 @@
                 }
 
                 if (isActive) {
-                    this.#dispatch(this.ACTION_ACTIVATED, actionName);
+                    this.#dispatch(this.ACTION_ACTIVATED, actionName, activePlugin);
                 } else {
-                    this.#dispatch(this.ACTION_DEACTIVATED, actionName);
+                    this.#dispatch(this.ACTION_DEACTIVATED, actionName, activePlugin);
                 }
             }
         }
 
-        #dispatch(type, actionName) {
+        #dispatch(type, actionName, pluginName) {
             if (!this.#target || !this.enabled || !this.focused) {
                 return;
             }
             const event = new CustomEvent(type, {
-                detail: actionName
+                detail: (pluginName ? (pluginName) + "-" : "") + actionName
             });
             this.#target.dispatchEvent(event);
         }

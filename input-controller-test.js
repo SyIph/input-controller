@@ -15,20 +15,31 @@
     var controller = new InputController(
         {
             left: {
-                keys: [65, 37]
+                keyboard: {
+                    keys: [65, 37]
+                }
             },
             right: {
-                keys: [68, 39]
+                keyboard: {
+                    keys: [68, 39]
+                }
             },
             up: {
-                keys: [87, 38]
+                keyboard: {
+                    keys: [87, 38]
+                }
             },
             down: {
-                keys: [83, 40]
+                keyboard: {
+                    keys: [83, 40]
+                }
             }
         },
         document
     );
+
+    var keyboardPlugin = new KeyboardPlugin();
+    controller.addPlugin(keyboardPlugin);
 
     var x = 0;
     var y = 0;
@@ -65,7 +76,9 @@
     bindJumpButton.addEventListener("click", function() {
         controller.bindActions({
             jump: {
-                keys: [32]
+                keyboard: {
+                    keys: [32]
+                }
             }
         });
         lastEvent.textContent = "Jump action added";
