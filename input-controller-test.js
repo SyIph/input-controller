@@ -17,11 +17,17 @@
             left: {
                 keyboard: {
                     keys: [65, 37]
+                },
+                mouse: {
+                    buttons: [0]
                 }
             },
             right: {
                 keyboard: {
                     keys: [68, 39]
+                },
+                mouse: {
+                    buttons: [2]
                 }
             },
             up: {
@@ -40,6 +46,9 @@
 
     var keyboardPlugin = new KeyboardPlugin();
     controller.addPlugin(keyboardPlugin);
+
+    var mousePlugin = new MousePlugin();
+    controller.addPlugin(mousePlugin);
 
     var x = 0;
     var y = 0;
@@ -78,6 +87,9 @@
             jump: {
                 keyboard: {
                     keys: [32]
+                },
+                mouse: {
+                    buttons: [1]
                 }
             }
         });

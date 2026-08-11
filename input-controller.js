@@ -212,14 +212,14 @@
                 return;
             }
 
-            var detailFrefix = "";
+            var detailPrefix = "";
             for (var activePluginName of activePlugins) {
-                detailFrefix += activePluginName + " ";
+                detailPrefix += activePluginName + ", ";
             }
-            detailFrefix = detailFrefix.trim();
+            detailPrefix = detailPrefix.slice(0, -2);
 
             const event = new CustomEvent(type, {
-                detail: (detailFrefix ? "(" + (detailFrefix) + ") " : "") + actionName
+                detail: (detailPrefix ? "(" + (detailPrefix) + ") " : "") + actionName
             });
             this.#target.dispatchEvent(event);
         }
