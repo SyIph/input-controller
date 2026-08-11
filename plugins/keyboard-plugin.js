@@ -4,16 +4,9 @@
         #upDownInput;
 
         constructor() {
-            super("keyboard");
-            this.#upDownInput = new UpDownInput(this.PLUGIN_NAME, "keys", "keydown", "keyup", "keyCode");
-        }
-
-        // isKeyPressed(keyCode) {
-        //     return this.#upDownInput.isInputPressed(keyCode);
-        // }
-
-        clearPressed() {
-            this.#upDownInput.clearPressed();
+            super("keyboard", [
+                new UpDownInput("keyboard", "keys", "keydown", "keyup", "keyCode")
+            ]);
         }
 
     }

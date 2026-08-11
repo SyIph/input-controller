@@ -1,6 +1,5 @@
 (function() {
     class UpDownInput extends InputBase {
-        #target;
         #pressedInputElement;
         #handleInputDownBinded;
         #handleInputUpBinded;
@@ -15,11 +14,13 @@
         #removeUpEventListener;
         #getEventInputCode;
 
+        #setFunctionsWithTarget;
+
         constructor(pluginName, actionInputs, downEventName, upEventName, eventInputCodeName) {
 
             super();
 
-            this.#target = null;
+
             this.#pressedInputElement = new Set();
             this.#handleInputDownBinded = this.#handleInputDown.bind(this);
             this.#handleInputUpBinded = this.#handleInputUp.bind(this);
@@ -37,29 +38,32 @@
                 return params[actionInputs];
             }
 
-            this.#addDownEventListener = function(callback) {
-                this.#target.addEventListener(downEventName, callback);
-                this.addListener();
-            }
+            this.#setFunctionsWithTarget = function(target) {
+                this.#addDownEventListener = function(callback) {
+                    target.addEventListener(downEventName, callback);
+                }
 
-            this.#removeDownEventListener = function(callback) {
-                this.#target.removeEventListener(downEventName, callback);
-            }
+                this.#removeDownEventListener = function(callback) {
+                    target.removeEventListener(downEventName, callback);
+                }
 
-            this.#addUpEventListener = function(callback) {
-                this.#target.addEventListener(upEventName, callback);
-            }
+                this.#addUpEventListener = function(callback) {
+                    target.addEventListener(upEventName, callback);
+                }
 
-            this.#removeUpEventListener = function(callback) {
-                this.#target.removeEventListener(upEventName, callback);
+                this.#removeUpEventListener = function(callback) {
+                    target.removeEventListener(upEventName, callback);
+                }
+
             }
 
             this.#getEventInputCode = function(event) {
                 return event[eventInputCodeName];
-            }
+            }            
         }
 
         attach(target) {
+            this.#setFunctionsWithTarget(target);
             this.#addDownEventListener(this.#handleInputDownBinded);
             this.#addUpEventListener(this.#handleInputUpBinded);
         }
@@ -83,9 +87,9 @@
             return false;
         }
 
-        isInputPressed(inputCode) {
-            return this.#pressedInputElement.has(inputCode);
-        }
+        // isInputPressed(inputCode) {
+        //     return this.#pressedInputElement.has(inputCode);
+        // }
 
         #handleInputDown(event) {
             var inputCode = this.#getEventInputCode(event);

@@ -4,10 +4,10 @@
 
         #inputs;
 
-        constructor(pluginName) {
+        constructor(pluginName, inputs) {
             this.#target = null;
             this.PLUGIN_NAME = pluginName;
-            this.#inputs = new Set();
+            this.#inputs = new Set(inputs);
         }
 
         attach(target) {
@@ -32,7 +32,7 @@
             }
 
             for (var input of this.#inputs) {
-                input.detach(target);
+                input.detach(this.#target);
             }
 
             this.#target = null;
@@ -54,7 +54,11 @@
         }
 
         clearPressed() {
-            
+            for (var input of this.#inputs) {
+                if (typeof input.clearPressed === "function") { //Если функция есть, то вызвать
+                    input.clearPressed();
+                }
+            }
         }
 
     }
