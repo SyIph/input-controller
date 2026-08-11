@@ -63,23 +63,17 @@
 
                 var newAction = actionsToBuild[actionName];
 
-                if (!this.#actions[actionName]) {
-                    this.#actions[actionName] = {
+                if (!this.#actions.has(actionName)) {
+                    this.#actions.set(actionName, {
                         //keys: [],
                         enabled: true,
                         active: false
-                    };
+                    });
                 }
 
-                var action = this.#actions[actionName];
-                if (newAction.enabled !== undefined) {
-                    action.enabled = newAction.enabled;
-                }
+                var action = this.#actions.get(actionName);
 
                 for (var settingName in newAction) {
-                    if (settingName === "enabled") {
-                        continue;
-                    }
                     action[settingName] = newAction[settingName];
                 }
 
@@ -97,19 +91,19 @@
         }
 
         enableAction(actionName) {
-            if (!this.#actions[actionName]) {
+            if (!this.#actions.has(actionName)) {
                 return;
             }
 
-            this.#actions[actionName].enabled = true;
+            this.#actions.get(actionName).enabled = true;
         }
 
         disableAction(actionName) {
-            if (!this.#actions[actionName]) {
+            if (!this.#actions.has(actionName)) {
                 return;
             }
 
-            this.#actions[actionName].enabled = false;
+            this.#actions.get(actionName).enabled = false;
         }
 
         attach(target, dontEnable = false) {
@@ -158,7 +152,7 @@
         }
 
         isActionActive(actionName) {
-            var action = this.#actions[actionName];
+            var action = this.#actions.get(actionName);
 
             if (!action || !this.enabled || !this.focused || !action.enabled) {
                 return false;
@@ -231,9 +225,7 @@
         }
 
         #updateActions(generateEvents = true) {
-            for (var actionName in this.#actions) {
-                var action = this.#actions[actionName];
-                
+            for (var [actionName, action] of this.#actions) {
                 var wasActive = action.active;
                 
                 var isActive = false;
