@@ -53,11 +53,9 @@
             }
         }
 
-        clearPressed() {
+        clear() {
             for (var input of this.#inputs) {
-                if (typeof input.clearPressed === "function") { //Если функция есть, то вызвать
-                    input.clearPressed();
-                }
+                input.clear();
             }
         }
 

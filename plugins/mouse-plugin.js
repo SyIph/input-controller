@@ -3,7 +3,8 @@
 
         constructor() {
             super("mouse", [
-                new UpDownInput("mouse", "buttons", "mousedown", "mouseup", "button")
+                new UpDownInput("mouse", "buttons", "mousedown", "mouseup", "button"),
+                new MouseWheelInput("mouse", "wheel")
             ]);
         }
 

@@ -143,20 +143,20 @@
                 return false;
             }
 
+            
+
             return action.activePlugins.size > 0;
-            //return action.active;
         }
 
         #handleFocus() {
             this.focused = true;
 
             for (var plugin of this.#plugins) {
-                plugin.clearPressed();
+                plugin.clear();
             }
 
             this.#actions.forEach(action => {
                 action.activePlugins.clear();
-                //action.active = false;
             });
         }
 
@@ -164,12 +164,11 @@
             this.focused = false;
 
             for (var plugin of this.#plugins) {
-                plugin.clearPressed();
+                plugin.clear();
             }
 
             this.#actions.forEach(action => {
                 action.activePlugins.clear();
-                //action.active = false;
             });
         }
 

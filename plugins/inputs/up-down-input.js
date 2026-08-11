@@ -3,9 +3,7 @@
         #pressedInputElement;
         #handleInputDownBinded;
         #handleInputUpBinded;
-        #onChange;
 
-        #getActionParams;
         #getActionInputTriggers;
 
         #addDownEventListener;
@@ -24,14 +22,9 @@
             this.#pressedInputElement = new Set();
             this.#handleInputDownBinded = this.#handleInputDown.bind(this);
             this.#handleInputUpBinded = this.#handleInputUp.bind(this);
-            this.#onChange = null;
-
-            this.#getActionParams = function(action) {
-                return action[pluginName];
-            }
 
             this.#getActionInputTriggers = function(action) {
-                var params = this.#getActionParams(action);
+                var params = action[pluginName];
                 if (!params) {
                     return;
                 }
@@ -69,6 +62,9 @@
         }
 
         detach() {
+            if (!this.#removeDownEventListener || !this.#removeUpEventListener) {
+                return;
+            }
             this.#removeDownEventListener(this.#handleInputDownBinded);
             this.#removeUpEventListener(this.#handleInputUpBinded);
             this.#pressedInputElement.clear();
@@ -87,10 +83,6 @@
             return false;
         }
 
-        // isInputPressed(inputCode) {
-        //     return this.#pressedInputElement.has(inputCode);
-        // }
-
         #handleInputDown(event) {
             var inputCode = this.#getEventInputCode(event);
 
@@ -100,9 +92,7 @@
 
             this.#pressedInputElement.add(inputCode);
 
-            if (this.#onChange) {
-                this.#onChange();
-            }
+            this._notifyChange();
         }
 
 
@@ -115,17 +105,11 @@
 
             this.#pressedInputElement.delete(inputCode);
 
-            if (this.#onChange) {
-                this.#onChange();
-            }
+            this._notifyChange();
         }
 
-        clearPressed() {
+        clear() {
             this.#pressedInputElement.clear();
-        }
-
-        setOnChange(callback) {
-            this.#onChange = callback;
         }
 
     }

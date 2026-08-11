@@ -33,11 +33,17 @@
             up: {
                 keyboard: {
                     keys: [87, 38]
+                },
+                mouse: {
+                    wheel: [1]
                 }
             },
             down: {
                 keyboard: {
                     keys: [83, 40]
+                },
+                mouse: {
+                    wheel: [-1]
                 }
             }
         },

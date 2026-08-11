@@ -1,8 +1,10 @@
 (function() {
     class InputBase {
 
+        #onChange;
+
         constructor() {
-            
+            this.#onChange = null;
         }
 
         attach(target) {
@@ -18,6 +20,16 @@
         }
 
         setOnChange(callback) {
+            this.#onChange = callback;
+        }
+
+        _notifyChange() {
+            if (this.#onChange) {
+                this.#onChange();
+            }
+        }
+
+        clear() {
             
         }
 
