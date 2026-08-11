@@ -5,11 +5,8 @@
 
         #actions;
         #target;
-        //#pressedKeys;
 
         #updateActionsBinded;
-        //#handleKeyDownBinded;
-        //#handleKeyUpBinded;
         #handleFocusBinded;
         #handleBlurBinded;
 
@@ -23,10 +20,7 @@
             this.#actions = new Map();
             this.#target = null;
 
-            //this.#pressedKeys = new Set();
             this.#updateActionsBinded = this.#updateActions.bind(this);
-            //this.#handleKeyDownBinded = this.#handleKeyDown.bind(this);
-            //this.#handleKeyUpBinded = this.#handleKeyUp.bind(this);
             this.#handleFocusBinded = this.#handleFocus.bind(this);
             this.#handleBlurBinded = this.#handleBlur.bind(this);
 
@@ -67,7 +61,10 @@
                     this.#actions.set(actionName, {
                         //keys: [],
                         enabled: true,
-                        active: false
+                        //active: false, 
+                        // Меняю на activePlugins, чтобы можно было не только знать состояние активности, 
+                        // но и получать имена плагинов
+                        activePlugins: new Set()
                     });
                 }
 
@@ -78,14 +75,6 @@
                 }
 
                 this.#updateActions();
-
-                // if (newAction.keys) {
-                //     newAction.keys.forEach(keyCode => {
-                //         if (action.keys.indexOf(keyCode) === -1) {
-                //             action.keys.push(keyCode);
-                //         }
-                //     });
-                // }
 
             }
         }
@@ -119,8 +108,6 @@
             for (var plugin of this.#plugins) {
                 plugin.attach(this.#target);
             }
-            //this.#target.addEventListener("keydown", this.#handleKeyDownBinded);
-            //this.#target.addEventListener("keyup", this.#handleKeyUpBinded);
             this.#target.addEventListener("focus", this.#handleFocusBinded);
             this.#target.addEventListener("blur", this.#handleBlurBinded);
 
@@ -137,17 +124,15 @@
             for (var plugin of this.#plugins) {
                 plugin.detach(this.#target);
             }
-            //this.#target.removeEventListener("keydown", this.#handleKeyDownBinded);
-            //this.#target.removeEventListener("keyup", this.#handleKeyUpBinded);
             this.#target.removeEventListener("focus", this.#handleFocusBinded);
             this.#target.removeEventListener("blur", this.#handleBlurBinded);
 
             this.#target = null;
             this.enabled = false;
-            //this.#pressedKeys.clear();
 
             this.#actions.forEach(action => {
-                action.active = false;
+                action.activePlugins.clear();
+                //action.active = false;
             });
         }
 
@@ -158,45 +143,9 @@
                 return false;
             }
 
-            return action.active;
+            return action.activePlugins.size > 0;
+            //return action.active;
         }
-
-        //isKeyPressed(keyCode) {
-            //return this.#pressedKeys.has(keyCode);
-        //}
-
-
-
-        // #handleKeyDown(event) {
-        //     if (!this.focused) {
-        //         return;
-        //     }
-
-        //     var keyCode = event.keyCode;
-
-        //     if (this.#pressedKeys.has(keyCode)) {
-        //         return;
-        //     }
-
-        //     this.#pressedKeys.add(keyCode);
-
-        //     this.#updateActions();
-        // }
-
-        // #handleKeyUp(event) {
-        //     if (!this.focused) {
-        //         return;
-        //     }
-
-        //     var keyCode = event.keyCode;
-
-        //     if (!this.#pressedKeys.has(keyCode)) {
-        //         return;
-        //     }
-
-        //     this.#pressedKeys.delete(keyCode);
-        //     this.#updateActions();
-        // }
 
         #handleFocus() {
             this.focused = true;
@@ -204,10 +153,10 @@
             for (var plugin of this.#plugins) {
                 plugin.clearPressed();
             }
-            //this.#pressedKeys.clear();
 
             this.#actions.forEach(action => {
-                action.active = false;
+                action.activePlugins.clear();
+                //action.active = false;
             });
         }
 
@@ -217,52 +166,60 @@
             for (var plugin of this.#plugins) {
                 plugin.clearPressed();
             }
-            //this.#pressedKeys.clear();
 
             this.#actions.forEach(action => {
-                action.active = false;
+                action.activePlugins.clear();
+                //action.active = false;
             });
         }
 
         #updateActions(generateEvents = true) {
             for (var [actionName, action] of this.#actions) {
-                var wasActive = action.active;
-                
-                var isActive = false;
-                var activePlugin = null;
+                var oldActivePlugins = new Set(action.activePlugins);
+                action.activePlugins.clear();
+
+                var noPluginsChanges = true;
                 for (var plugin of this.#plugins) {
                     if (plugin.isActionActive(action)) {
-                        isActive = true;
-                        activePlugin = plugin.PLUGIN_NAME;
-                        break;
+                        action.activePlugins.add(plugin.PLUGIN_NAME);
+
+                        if (!oldActivePlugins.has(plugin.PLUGIN_NAME)) {
+                            // Первая часть проверки noPluginsChanges: все активные сейчас плагины уже были активны
+                            noPluginsChanges = false;
+                        }
                     }
                 }
-                //for (const keyCode of action.keys) {
-                    //if (this.#pressedKeys.has(keyCode)) {
-                    //    isActive = true;
-                    //    break;
-                    //}
-                //}
-                action.active = isActive;
 
-                if (wasActive === isActive || !generateEvents || !this.enabled || !this.focused || !action.enabled) {
+                if (noPluginsChanges && oldActivePlugins.size != action.activePlugins.size) {
+                    // Вторая часть проверки noPluginsChanges: раньше активных плагинов было не больше чем сейчас
+                    noPluginsChanges = false;
+                }
+
+                if (noPluginsChanges || !generateEvents || !this.enabled || !this.focused || !action.enabled) {
                     continue;
                 }
 
-                if (isActive) {
-                    this.#dispatch(this.ACTION_ACTIVATED, actionName, activePlugin);
+                if (action.activePlugins.size > 0) {
+                    this.#dispatch(this.ACTION_ACTIVATED, actionName, action.activePlugins);
                 } else {
-                    this.#dispatch(this.ACTION_DEACTIVATED, actionName, activePlugin);
+                    this.#dispatch(this.ACTION_DEACTIVATED, actionName, oldActivePlugins);
                 }
             }
         }
 
-        #dispatch(type, actionName, pluginName) {
+        #dispatch(type, actionName, activePlugins) {
             if (!this.#target || !this.enabled || !this.focused) {
                 return;
             }
+
+            var detailFrefix = "";
+            for (var activePluginName of activePlugins) {
+                detailFrefix += activePluginName + " ";
+            }
+            detailFrefix = detailFrefix.trim();
+
             const event = new CustomEvent(type, {
-                detail: (pluginName ? (pluginName) + "-" : "") + actionName
+                detail: (detailFrefix ? "(" + (detailFrefix) + ") " : "") + actionName
             });
             this.#target.dispatchEvent(event);
         }
